@@ -1,0 +1,3 @@
+Timestamp,Amount,Location,Device,Fraud,Score
+2026-04-24T16:33:19.115Z,1200,karwar,device-001,No,0.4740
+2026-04-24T16:32:59.616Z,120000,Bengaluru,device-001,Yes,1.0000

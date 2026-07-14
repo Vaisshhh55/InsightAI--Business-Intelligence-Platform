@@ -1,0 +1,7 @@
+month,revenue,profit,region,customer_segment,product,units_sold
+2024-01,120000,25000,North,Enterprise,Widget A,120
+2024-02,135000,28000,North,SMB,Widget A,135
+2024-03,148000,31000,South,Enterprise,Widget B,140
+2024-04,152000,33000,South,SMB,Widget B,150
+2024-05,139000,29000,West,Enterprise,Widget C,130
+2024-06,160000,35000,West,SMB,Widget C,145

@@ -1,0 +1,10 @@
+{
+  "dataset_id": "sample_-_superstore",
+  "quality_score": 100,
+  "details": {
+    "duplicates_removed": 0,
+    "missing_before": 0,
+    "missing_after": 0
+  },
+  "created_at": "2026-07-05T08:14:22.983865"
+}

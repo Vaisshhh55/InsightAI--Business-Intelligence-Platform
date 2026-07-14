@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Profile - InsightAI</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <div>
+              <p class="topbar-kicker">Profile</p>
+              <h1>Your profile</h1>
+            </div>
+          </div>
+        </header>
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <p class="card-kicker">Account</p>
+              <h3>Profile Summary</h3>
+            </div>
+          </div>
+          <div style="padding:16px">
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Role:</strong> {{ user.role }}</p>
+            <p><em>Role changes require admin approval.</em></p>
+            <a href="/workspace">Back to workspace</a>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InsightAI | Enterprise Decision Intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="theme-dark">
+    <div class="login-shell">
+      <aside class="hero-panel">
+        <div class="hero-top">
+          <div class="brand-mark hero-mark">IA</div>
+          <div class="top-copy">
+            <p class="eyebrow">Enterprise intelligence for modern teams</p>
+            <h1>Enterprise Decision Intelligence Platform</h1>
+            <p class="hero-copy">Unlock trusted analytics, explainable AI, forecasting, and executive reporting in one secure workspace built for enterprise impact.</p>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-icon">🤖</span>
+            <div>
+              <h3>AI Analytics</h3>
+              <p>Understand business performance with automated insights.</p>
+            </div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📈</span>
+            <div>
+              <h3>Sales Forecasting</h3>
+              <p>Model demand and growth with enterprise-grade predictions.</p>
+            </div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🧠</span>
+            <div>
+              <h3>Explainable AI</h3>
+              <p>Generate transparent recommendations with confidence.</p>
+            </div>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📊</span>
+            <div>
+              <h3>Executive Reporting</h3>
+              <p>Share board-ready narratives and KPI dashboards instantly.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-pill">
+            <strong>10,000+</strong>
+            <span>Records Processed</span>
+          </div>
+          <div class="stat-pill">
+            <strong>95%</strong>
+            <span>Forecast Accuracy</span>
+          </div>
+          <div class="stat-pill">
+            <strong>Enterprise</strong>
+            <span>Security</span>
+          </div>
+          <div class="stat-pill">
+            <strong>AI-Powered</strong>
+            <span>Insights</span>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-shape hero-shape-1"></div>
+          <div class="hero-shape hero-shape-2"></div>
+          <div class="hero-shape hero-shape-3"></div>
+        </div>
+      </aside>
+
+      <section class="auth-panel">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div>
+              <p class="eyebrow">Welcome Back</p>
+              <h2>Sign in to your InsightAI workspace</h2>
+            </div>
+            <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme">Light</button>
+          </div>
+
+          <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
+            <button id="tabLogin" class="tab-btn active" type="button" role="tab" aria-selected="true">Login</button>
+            <button id="tabRegister" class="tab-btn" type="button" role="tab" aria-selected="false">Register</button>
+          </div>
+
+          <form id="authForm" class="auth-form" novalidate>
+            <div id="nameGroup" class="input-group hidden">
+              <label for="fullNameInput">Full Name</label>
+              <div class="input-wrapper">
+                <span class="input-icon">👤</span>
+                <input id="fullNameInput" type="text" placeholder="Jane Doe" autocomplete="name" />
+              </div>
+              <p class="field-error" id="nameError"></p>
+            </div>
+
+            <div class="input-group">
+              <label for="emailInput">Email address</label>
+              <div class="input-wrapper">
+                <span class="input-icon">✉️</span>
+                <input id="emailInput" type="email" placeholder="you@company.com" autocomplete="email" />
+              </div>
+              <p class="field-error" id="emailError"></p>
+            </div>
+
+            <div class="input-group">
+              <label for="passwordInput">Password</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input id="passwordInput" type="password" placeholder="Enter your password" autocomplete="current-password" />
+                <button id="togglePassword" type="button" class="password-toggle" aria-label="Show or hide password">Show</button>
+              </div>
+              <p class="field-error" id="passwordError"></p>
+            </div>
+
+            <div id="confirmGroup" class="input-group hidden">
+              <label for="confirmPasswordInput">Confirm Password</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input id="confirmPasswordInput" type="password" placeholder="Confirm password" autocomplete="new-password" />
+              </div>
+              <p class="field-error" id="confirmError"></p>
+            </div>
+
+            <div class="form-footer">
+              <label class="checkbox-field">
+                <input id="rememberCheckbox" type="checkbox" />
+                <span>Remember Me</span>
+              </label>
+              <a href="#" id="forgotLink" class="forgot-link">Forgot Password?</a>
+            </div>
+
+            <div class="action-row">
+              <button id="loginButton" type="button" class="secondary-btn">Login</button>
+              <button id="registerButton" type="button" class="primary-btn">Register</button>
+            </div>
+
+            <div class="auth-note" id="authMessage">Enter your credentials to continue.</div>
+          </form>
+        </div>
+
+        <footer class="login-footer">
+          <div>Version 1.0 · Powered by InsightAI</div>
+          <div>© 2026 InsightAI. All rights reserved.</div>
+        </footer>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/landing.js"></script>
+  </body>
+</html>

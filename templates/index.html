@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InsightAI | Enterprise Decision Intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <div class="brand">
+            <div class="brand-mark">IA</div>
+            <div>
+              <h2>InsightAI</h2>
+              <p>Decision Intelligence</p>
+            </div>
+          </div>
+          <button class="icon-btn" id="sidebarToggle" aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+          </button>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 12L12 4l8 8v8H4z"/></svg></span>
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" data-view="upload">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 20h14"/></svg></span>
+            <span>Upload Dataset</span>
+          </button>
+          <button class="nav-item" data-view="analytics">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 19V9m7 10V5m7 14v-7"/></svg></span>
+            <span>Analytics</span>
+          </button>
+          <button class="nav-item" data-view="forecasting">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 18h16M7 14l3-3 3 2 4-6"/></svg></span>
+            <span>Forecasting</span>
+          </button>
+          <button class="nav-item" data-view="assistant">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M6 7h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3V9a2 2 0 0 1 2-2z"/></svg></span>
+            <span>AI Assistant</span>
+          </button>
+          <button class="nav-item" data-view="reports">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10l2 2v16H5V3h2z"/></svg></span>
+            <span>Reports</span>
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm8 4a8.2 8.2 0 0 0-.1-1.2l1.8-1.4-2-3.4-2.2 1a8.6 8.6 0 0 0-2.2-1.2L14.6 2h-5.2l-.8 2.2a8.6 8.6 0 0 0-2.2 1.2l-2.2-1-2 3.4 1.8 1.4A8.2 8.2 0 0 0 4 12a8.2 8.2 0 0 0 .1 1.2L2.3 14.6l2 3.4 2.2-1a8.6 8.6 0 0 0 2.2 1.2l.8 2.2h5.2l.8-2.2a8.6 8.6 0 0 0 2.2-1.2l2.2 1 2-3.4-1.8-1.4c.1-.4.1-.8.1-1.2z"/></svg></span>
+            <span>Settings</span>
+          </button>
+          <button class="nav-item admin-only" data-view="admin" style="display:none">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-7.5 4 2-7L1 9h7z"/></svg></span>
+            <span>Admin</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-pill" id="userProfile">
+            <div class="avatar">{{ user.email[0]|upper if user else 'GU' }}</div>
+            <div>
+              <strong>{{ user.email if user else 'Guest User' }}</strong>
+              <p>{{ user.role if user else 'Pending authentication' }}</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="ghost-btn" id="profileBtn">Profile</button>
+            <button class="ghost-btn" id="logoutBtn" style="width:100%;">Logout</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-btn mobile-toggle" id="mobileToggle" aria-label="Open navigation">
+              <svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+            </button>
+            <div>
+              <p class="topbar-kicker">Business intelligence workspace</p>
+              <h1 id="pageTitle">Overview</h1>
+            </div>
+          </div>
+        </header>
+
+        <section class="view active" data-view-section="overview">
+          <div class="hero-card">
+            <div>
+              <p class="eyebrow">Secure analytics workspace</p>
+              <h2>Upload a dataset and explore the results.</h2>
+              <p class="muted">Authenticated access to dataset-driven analytics and assistant insight.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="primary-btn" data-view-link="upload">Analyze a dataset</button>
+              <button class="ghost-btn" data-view-link="assistant">Open AI Assistant</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <article class="stat-card">
+              <p class="stat-label">Rows</p>
+              <h3 id="rowCount">0</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Columns</p>
+              <h3 id="columnCount">0</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Quality Score</p>
+              <h3 id="qualityScore">0 / 100</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Growth Rate</p>
+              <h3 id="growthRate">0%</h3>
+            </article>
+          </div>
+         
+
+          <div class="content-grid two-up">
+            <article class="card card-large">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Executive summary</p>
+                  <h3>Business performance snapshot</h3>
+                </div>
+                <span class="pill">Live</span>
+              </div>
+              <p id="summaryText" class="card-copy">No dataset loaded yet. Choose a dataset to unlock predictive analytics and AI recommendations.</p>
+              <ul id="recommendationsList" class="list-stack"></ul>
+            </article>
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Forecasting</p>
+                  <h3>Performance trend</h3>
+                </div>
+              </div>
+              <div class="chart-container"><div id="forecastChart" style="width:100%;height:280px;"></div></div>
+            </article>
+          </div>
+
+          <div class="content-grid two-up">
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Segments</p>
+                  <h3>Top business segments</h3>
+                </div>
+              </div>
+              <ul id="segmentsList" class="list-stack"></ul>
+            </article>
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Explainable AI</p>
+                  <h3>Key feature drivers</h3>
+                </div>
+              </div>
+              <ul id="featureList" class="list-stack"></ul>
+            </article>
+          </div>
+          <div class="content-grid two-up">
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Operations</p>
+                  <h3>Pipeline snapshot</h3>
+                </div>
+              </div>
+              <ul class="list-stack">
+                <li>Data quality scoring and anomaly detection are active.</li>
+                <li>Forecasting models are generated from recent trend history.</li>
+                <li>Reports and assistant insights are synced to the current dataset.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <div class="card-header">
+                <div>
+                  <p class="card-kicker">Decision support</p>
+                  <h3>Actionable insights</h3>
+                </div>
+              </div>
+              <ul class="list-stack">
+                <li>Use the assistant for region, trend, customer, and forecast questions.</li>
+                <li>Export reports to share executive-ready summaries quickly.</li>
+                <li>Move from upload to analysis without leaving the workspace.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="upload">
+          <div class="card upload-card">
+            <div class="card-header">
+              <div>
+                <p class="card-kicker">Data ingestion</p>
+                <h3>Upload your business dataset</h3>
+              </div>
+            </div>
+            <form id="uploadForm" class="upload-form">
+              <label class="upload-label" for="fileInput">Choose CSV or Excel data</label>
+              <input id="fileInput" name="file" type="file" accept=".csv,.xlsx,.xls" required />
+              <button type="submit" class="primary-btn">Analyze Dataset</button>
+            </form>
+            <div id="statusBox" class="status-pill">Ready for analysis.</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <p class="card-kicker">Supported sources</p>
+                <h3>What InsightAI ingests</h3>
+              </div>
+            </div>
+            <ul class="list-stack">
+              <li>CSV and Excel files for rapid business analysis</li>
+              <li>Automatic schema detection and data cleaning</li>
+              <li>Quality scoring and anomaly evaluation</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="analytics">
+          <div class="kpi-grid">
+            <article class="stat-card">
+              <p class="stat-label">Metric Column</p>
+              <h3 id="metricColumn">—</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Metric Total</p>
+              <h3 id="metricTotal">0</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Average</p>
+              <h3 id="metricAverage">0</h3>
+            </article>
+            <article class="stat-card">
+              <p class="stat-label">Data Quality</p>
+              <h3 id="qualityScoreAnalytics">0 / 100</h3>
+            </article>
+          </div>
+          <div class="content-grid two-up">
+            <article class="card">
+              <div class="card-header">
+                <div><p class="card-kicker">Analytics</p><h3>Executive narrative</h3></div>
+              </div>
+              <p id="analyticsNarrative" class="card-copy">Upload data to surface business insights and recommend actions.</p>
+            </article>
+            <article class="card">
+              <div class="card-header">
+                <div><p class="card-kicker">Forecasting</p><h3>Projected trend</h3></div>
+              </div>
+              <div class="chart-container"><div id="forecastChartDetailed" style="width:100%;height:320px;"></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="forecasting">
+            <div class="card">
+            <div class="card-header">
+              <div><p class="card-kicker">Forecast</p><h3>Prediction outlook</h3></div>
+            </div>
+            <div style="margin:12px 0"><label for="filterYear">Year:</label> <select id="filterYear"><option value="all">All</option></select>
+            <label for="filterCategory" style="margin-left:12px">Category:</label> <select id="filterCategory"><option value="all">All</option></select></div>
+            <div class="chart-container"><div id="forecastChartForecast" style="width:100%;height:360px;"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div><p class="card-kicker">Forecast highlights</p><h3>Key takeaways</h3></div>
+            </div>
+            <div id="forecastDetails" class="list-stack"></div>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="assistant">
+          <div class="chat-shell">
+            <div class="chat-header">
+              <div>
+                <p class="card-kicker">AI assistant</p>
+                <h3>Ask InsightAI about your business data</h3>
+              </div>
+            </div>
+            <div class="chat-body" id="chatMessages">
+              <div class="message bot">Hello! I can explain forecast drivers, highlight underperforming segments, and recommend next steps from your uploaded data.</div>
+            </div>
+            <div class="chat-input-row">
+              <input id="assistantInput" type="text" placeholder="Ask about regions, drops, customers, or forecasts" />
+              <button id="assistantButton" class="primary-btn">Send</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="reports">
+          <div class="card">
+            <div class="card-header">
+              <div><p class="card-kicker">Reports</p><h3>Executive exports</h3></div>
+            </div>
+            <div class="report-actions">
+              <button class="primary-btn" id="exportExcelBtn">Download Excel Report</button>
+              <button class="ghost-btn" id="exportPdfBtn">Download PDF Report</button>
+            </div>
+            <div id="reportSummary" class="card-copy">Export-ready reports are generated from your current analysis context.</div>
+          </div>
+        </section>
+
+        <section class="view" data-view-section="settings">
+          <div class="card">
+            <div class="card-header">
+              <div><p class="card-kicker">Workspace</p><h3>Preferences and control center</h3></div>
+            </div>
+            <div class="settings-list">
+              <div class="setting-row"><span>Theme</span><strong>Enterprise Dark</strong></div>
+              <div class="setting-row"><span>Auto-refresh</span><strong>Enabled</strong></div>
+              <div class="setting-row"><span>Data governance</span><strong>Policy-ready</strong></div>
+            </div>
+          </div>
+        </section>
+        <section class="view" data-view-section="admin">
+          <div class="card">
+            <div class="card-header">
+              <div><p class="card-kicker">Admin</p><h3>Administration Console</h3></div>
+            </div>
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+              <div style="flex:1 1 320px;">
+                <h4>Users</h4>
+                <div id="adminUsers"></div>
+              </div>
+              <div style="flex:1 1 320px;">
+                <h4>Audit Logs</h4>
+                <div id="adminAudit"></div>
+              </div>
+              <div style="flex:1 1 640px;">
+                <h4>Datasets</h4>
+                <div id="adminDatasets"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js?v=3"></script>
+  </body>
+</html>
