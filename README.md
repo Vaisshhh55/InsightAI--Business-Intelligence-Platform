@@ -470,29 +470,7 @@ Contains the complete backend:
 - Session cookies marked `HttpOnly` and `SameSite=Lax`
 - CSP and security headers enabled
 - Input sanitized by `bleach`
-- JWT support for protected routes
-
-## Limitations
-- Rule-based AI intent detection
-- Forecasting limited to linear trend only
-- SQLite persistence best for small-to-medium datasets
-- No external language model integration
-
-## Future Improvements
-- Add semantic search and embeddings for AI intent
-- Expand forecasting with ARIMA and Prophet
-- Support dataset versioning and history
-- Add Docker and cloud deployment scripts
-- Improve the assistant with multi-turn context
-- Add more export formats (Power BI, CSV dashboards)
-- Enhance admin reporting and monitoring
-- Add RBAC for multiple user roles
-
-## Resume Description
-InsightAI is a Flask-based business intelligence platform that converts uploaded datasets into dashboards, forecasts, reports, and AI-driven insights.
-
-## LinkedIn Description
-Built InsightAI, an end-to-end BI platform that supports secure dataset upload, automated cleaning, dynamic dashboards, linear forecasting, and a natural language AI assistant.
+- JWT support for protected route
 
 ## Frequently Asked Questions
 1. **What does InsightAI do?**
