@@ -170,6 +170,20 @@ def analysis_ready():
     return st.session_state.get("analysis") is not None and st.session_state.get("cleaned_dataframe") is not None
 
 
+def refresh_analysis_if_needed():
+    analysis = st.session_state.get("analysis")
+    dataframe = st.session_state.get("cleaned_dataframe")
+    if not analysis or dataframe is None:
+        return
+    if "top_categories" not in analysis:
+        analysis["top_categories"] = []
+    if not analysis["top_categories"]:
+        refreshed = prepare_analysis(dataframe, st.session_state["dataset_name"], analysis.get("quality_score", 0))
+        refreshed["quality_score"] = analysis.get("quality_score", 0)
+        refreshed["details"] = analysis.get("details", {})
+        st.session_state["analysis"] = refreshed
+
+
 def render_auth():
     st.markdown('<div class="insight-header"><div class="insight-kicker">Business intelligence workspace</div><h1>InsightAI</h1></div>', unsafe_allow_html=True)
     st.write("Turn messy datasets into clear decisions, forecasts, and explainable answers.")
@@ -464,6 +478,7 @@ def render_admin():
 def main():
     init_db()
     ensure_state()
+    refresh_analysis_if_needed()
     if not current_user():
         render_auth()
         return
