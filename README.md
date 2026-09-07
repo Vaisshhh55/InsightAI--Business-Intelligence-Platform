@@ -433,80 +433,10 @@ python app.py
 | SQLAlchemy | DB helpers |
 | bleach | Input sanitization |
 
-## Code Explanation
-### `app.py`
-Contains the complete backend:
-- route definitions
-- authentication flows
-- dataset upload and cleaning
-- assistant intent handling
-- report export
 
-### `clean_dataset(df)`
-- Normalizes columns
-- Removes duplicate/empty rows
-- Parses numeric and datetime fields
-- Imputes missing data
-- Smooths outliers
 
-### `prepare_analysis(...)`
-- Infers the metric column and date column
-- Computes totals, averages, growth, forecast points, top categories
-- Builds summary narrative and dataset metadata
-
-### `assistant_reply(...)`
-- Maps dataset fields to common business terms
-- Detects intent from user text
-- Executes analytics queries using Pandas
-- Returns structured answers
-
-## Testing
-- Run `pytest`
-- Test file: `tests/test_app.py`
-- Focus areas: auth, upload, assistant replies, and admin routes
-
-## Security
-- Password hashing with Werkzeug
-- Session cookies marked `HttpOnly` and `SameSite=Lax`
-- CSP and security headers enabled
-- Input sanitized by `bleach`
-- JWT support for protected routes
-
-## Limitations
-- Rule-based AI intent detection
-- Forecasting limited to linear trend only
-- SQLite persistence best for small-to-medium datasets
-- No external language model integration
-
-## Future Improvements
-- Add semantic search and embeddings for AI intent
-- Expand forecasting with ARIMA and Prophet
-- Support dataset versioning and history
-- Add Docker and cloud deployment scripts
-- Improve the assistant with multi-turn context
-- Add more export formats (Power BI, CSV dashboards)
-- Enhance admin reporting and monitoring
-- Add RBAC for multiple user roles
-
-## Resume Description
-InsightAI is a Flask-based business intelligence platform that converts uploaded datasets into dashboards, forecasts, reports, and AI-driven insights.
-
-## LinkedIn Description
-Built InsightAI, an end-to-end BI platform that supports secure dataset upload, automated cleaning, dynamic dashboards, linear forecasting, and a natural language AI assistant.
-
-## Frequently Asked Questions
-1. **What does InsightAI do?**
-   Converts raw datasets into business analytics, forecasts, and AI responses.
-2. **Which files can I upload?**
-   CSV, XLS, and XLSX.
-3. **How are passwords secured?**
-   With `werkzeug` hashing.
-4. **Does the AI assistant use external APIs?**
-   No. It uses dataset-driven Pandas calculations.
-5. **Can I deploy this in production?**
-   Yes, with proper environment variables and secure secrets.
 
 ## Conclusion
 InsightAI provides a unified, developer-friendly solution for dataset-driven business analysis. The platform delivers analytics, forecasting, and AI-guided decisions from uploaded datasets, making it suitable for interviews, demos, and business automation.
 
-Tell me which to do next or say "do all" and I'll continue through the remaining items.
+
