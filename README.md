@@ -410,8 +410,16 @@ pip install -r requirements.txt
 
 ### Run Locally
 ```bash
-python app.py
+streamlit run streamlit_app.py
 ```
+
+The primary application is now the Streamlit workspace in `streamlit_app.py`. It includes authentication, dataset upload and cleaning, analytics, forecasting, assistant chat, report downloads, profiles, and admin tools. The original Flask entry point remains available for API compatibility.
+
+### Streamlit Community Cloud
+- Repository: this GitHub repository
+- Branch: `main`
+- Main file: `streamlit_app.py`
+- Add `GEMINI_API_KEY` in the app Secrets settings to enable Gemini responses; deterministic dataset answers work without it.
 
 ### Environment Variables
 - `FLASK_SECRET_KEY`: Flask app secret key
