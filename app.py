@@ -24,6 +24,10 @@ from sklearn.linear_model import LinearRegression
 from werkzeug.utils import secure_filename
 import bleach
 
+from assistant_service import AssistantService
+from chat_memory import ChatMemory
+from gemini_client import GeminiClient
+
 app = Flask(__name__)
 # Ensure strong secrets in production; prefer environment variables.
 flask_secret = os.getenv("FLASK_SECRET_KEY")
@@ -529,60 +533,67 @@ def _map_columns(df):
 
 def _detect_intent_and_entities(message):
     """Simple intent classifier using keywords and regex. Returns intent and detected entities."""
-    m = message.lower()
-    # order matters: more specific intents first to avoid matching generic 'sales' too early
-    intents = {
-        'product': ['top product', 'best selling', 'top selling', 'highest sales', 'most sold', 'product', 'sku'],
-        'region': ['sales by region', 'by region', 'region sales', 'region', 'territory', 'state'],
-        'repeat_customers': ['repeat customers', 'repeat buyers', 'returning customers', 'repeat purchases'],
-        'churn': ['churn', 'customer churn', 'lost customers', 'attrition'],
-        'cohort': ['cohort', 'cohort analysis', 'retention by cohort'],
-        'cltv': ['lifetime value', 'cltv', 'ltv', 'customer lifetime value'],
-        'forecasting': ['monthly sales', 'sales by month', 'per month', 'forecast', 'predict', 'projection'],
-        'customer': ['top customer', 'top customers', 'highest spending customer', 'best customer', 'customer'],
-        'sales': ['total sales', 'sum of sales', 'total revenue', 'sales total', 'sales'],
-        'profit': ['total profit', 'profit total', 'profit', 'margin'],
-        'dataset_information': ['summary', 'dataset summary', 'data summary', 'rows', 'columns', 'schema', 'fields', 'types'],
-        'data_quality': ['quality', 'missing', 'duplicates', 'outlier', 'data quality'],
-        'recommendations': ['recommend', 'what should', 'suggest', 'how can', 'which products should', 'improvements', 'opportunity'],
-        'dashboard': ['dashboard', 'overview', 'visualization', 'charts', 'overview report'],
-    }
-    # match intent by keyword presence
-    for intent, keys in intents.items():
-        for k in keys:
-            if k in m:
-                # extract simple entities
-                ents = {}
-                mtop = re.search(r'top\s+(\d+)', m)
-                if mtop:
-                    try:
-                        ents['top_n'] = int(mtop.group(1))
-                    except Exception:
-                        pass
-                mnum = re.search(r'last\s+(\d+)\s+months', m) or re.search(r'past\s+(\d+)\s+months', m)
-                if mnum:
-                    try:
-                        ents['months'] = int(mnum.group(1))
-                    except Exception:
-                        pass
-                # promotion phrasing -> recommendations intent with promote type
-                if 'promot' in m or 'should be promoted' in m or 'which products should' in m:
-                    ents['recommendation_type'] = 'promote'
-                    if 'top' not in ents:
-                        ents['top_n'] = 5
-                    return 'recommendations', ents
-                # explicit 'which product has highest' -> top_n = 1
-                if 'highest' in m or 'which product has highest' in m or 'which product has the highest' in m or 'highest sales' in m:
-                    ents['top_n'] = 1
-                    return intent, ents
-                return intent, ents
+    m = message.lower().strip()
+    if not m:
+        return 'unknown', {}
 
-    # fallback heuristics
+    ents = {}
+    mtop = re.search(r'top\s+(\d+)', m)
+    if mtop:
+        try:
+            ents['top_n'] = int(mtop.group(1))
+        except Exception:
+            pass
+    mnum = re.search(r'last\s+(\d+)\s+months', m) or re.search(r'past\s+(\d+)\s+months', m)
+    if mnum:
+        try:
+            ents['months'] = int(mnum.group(1))
+        except Exception:
+            pass
+
+    if 'promot' in m or 'should be promoted' in m or 'which products should' in m:
+        ents['recommendation_type'] = 'promote'
+        if 'top_n' not in ents:
+            ents['top_n'] = 5
+        return 'recommendations', ents
+
+    if 'highest sales region' in m or 'highest sales by region' in m or 'max revenue region' in m or 'maximum revenue region' in m or 'top region' in m:
+        return 'region', {'metric': 'sales'}
+
+    if 'highest sales' in m or 'top product' in m or 'best selling' in m or 'most sold' in m or 'which product' in m:
+        ents['top_n'] = 1
+        return 'product', ents
+
+    if 'sales by region' in m or 'by region' in m or 'region sales' in m or 'region generated' in m or 'region' in m and 'sales' in m:
+        return 'region', {'metric': 'sales'}
+
+    if 'sales trend' in m or 'monthly sales' in m or 'sales by month' in m or 'forecast' in m or 'predict' in m or 'projection' in m:
+        return 'forecasting', ents
+
+    if 'top customer' in m or 'top customers' in m or 'best customer' in m or 'highest spending customer' in m or 'customer' in m and 'top' in m:
+        return 'customer', ents
+
+    if 'total sales' in m or 'sum of sales' in m or 'sales total' in m or 'total revenue' in m or 'sales' in m:
+        return 'sales', ents
+
+    if 'total profit' in m or 'profit total' in m or 'profit' in m or 'margin' in m:
+        return 'profit', ents
+
+    if 'summary' in m or 'dataset summary' in m or 'data summary' in m or 'rows' in m or 'columns' in m or 'schema' in m or 'fields' in m or 'types' in m:
+        return 'dataset_information', ents
+
+    if 'quality' in m or 'missing' in m or 'duplicates' in m or 'outlier' in m or 'data quality' in m:
+        return 'data_quality', ents
+
+    if 'recommend' in m or 'what should' in m or 'suggest' in m or 'how can' in m or 'improvements' in m or 'opportunity' in m:
+        return 'recommendations', ents
+
+    if 'dashboard' in m or 'overview' in m or 'visualization' in m or 'charts' in m or 'overview report' in m:
+        return 'dashboard', ents
+
     if re.search(r'top\s+\d+', m):
         return 'product', {'top_n': int(re.search(r'top\s+(\d+)', m).group(1))}
-    if 'forecast' in m or 'predict' in m:
-        return 'forecasting', {}
-    # final fallback
+
     return 'unknown', {}
 
 
@@ -924,10 +935,8 @@ def _answer_intent(intent, df, analysis, col_map, entities=None):
         return result
 
     if intent == 'region':
-        # aggregate sales by region if available
         region_col = col_map.get('region') or col_map.get('state') or col_map.get('city')
         if not sales_col or not region_col or region_col not in df.columns:
-            # if user asked for most_profitable_category mapped here, try category
             cat = col_map.get('category')
             if profit_col and cat and cat in df.columns:
                 grouped = df.groupby(cat)[profit_col].sum().sort_values(ascending=False)
@@ -943,11 +952,18 @@ def _answer_intent(intent, df, analysis, col_map, entities=None):
             result['confidence'] = 35
             return result
         grouped = df.groupby(region_col)[sales_col].sum().sort_values(ascending=False)
-        top = grouped.head(5)
-        top_list = [(str(idx), float(v)) for idx, v in top.items()]
-        result['answer'] = f"Sales by {region_col} computed; top regions returned."
-        result['stats'] = {'top_regions': top_list}
-        result['explanation'] = f"Aggregated sales per '{region_col}' to show regional performance."
+        top_region = grouped.head(1)
+        if top_region.empty:
+            result['answer'] = "No region-level sales data is available."
+            result['confidence'] = 35
+            return result
+        region_name = str(top_region.index[0])
+        region_sales = float(top_region.iloc[0])
+        total_sales = float(df[sales_col].sum())
+        share = _safe_percent(region_sales, total_sales)
+        result['answer'] = f"Highest sales region: {region_name} with {_format_currency(region_sales)} in sales ({share}% of total sales)."
+        result['stats'] = {'top_region': region_name, 'sales': region_sales, 'share_pct': share}
+        result['explanation'] = f"Aggregated sales per '{region_col}' to identify the strongest-performing region."
         result['recommendation'] = None
         result['confidence'] = 90
         return result
@@ -1141,68 +1157,30 @@ def _answer_intent(intent, df, analysis, col_map, entities=None):
     return result
 
 
-def assistant_reply(message, dataset):
-    """Main assistant entrypoint: accepts raw message and dataset dict (with 'data' and 'analysis').
+def _build_assistant_service():
+    return AssistantService(
+        gemini_client=GeminiClient(),
+        chat_memory=ChatMemory(db_factory=get_db_connection),
+    )
 
-    Returns a structured textual reply built from real dataset analysis.
-    """
+
+def assistant_reply(message, dataset):
+    """Return a natural-language answer for the current dataset using the Gemini-backed assistant service."""
     if not message or not message.strip():
         return "Please ask a question about the dataset and I'll help interpret it."
 
-    df = None
-    analysis = {}
+    dataset_id = None
     if isinstance(dataset, dict):
-        df = dataset.get('data') if 'data' in dataset else None
-        analysis = dataset.get('analysis', {})
-    # if only analysis passed, we can't run queries
-    if df is None or not hasattr(df, 'columns'):
-        return "No dataset loaded or dataset not readable. Upload or load a dataset first."
+        dataset_id = dataset.get("dataset_id")
 
-    # ensure dataframe copy for safety
-    try:
-        df_proc = df.copy()
-    except Exception:
-        df_proc = df
-
-    # canonical column mapping
-    col_map = _map_columns(df_proc)
-
-    # detect intent
-    intent, entities = _detect_intent_and_entities(message)
-
-    # run intent handler
-    # normalize similar intents
-    if intent == 'dataset_information':
-        intent = 'dataset_summary'
-    result = _answer_intent(intent, df_proc, analysis, col_map, entities)
-
-    # Build reply string with required sections
-    parts = []
-    parts.append(f"Answer:\n{result.get('answer')}")
-    stats = result.get('stats') or {}
-    if stats:
-        parts.append("\nSupporting statistics:")
-        # format small table-like lines
-        for k, v in list(stats.items())[:8]:
-            try:
-                if isinstance(v, dict):
-                    parts.append(f"- {k}: {list(v.items())[:3]}")
-                else:
-                    parts.append(f"- {k}: {v}")
-            except Exception:
-                parts.append(f"- {k}: {v}")
-    if result.get('explanation'):
-        parts.append(f"\nBusiness explanation:\n{result.get('explanation')}")
-    rec = result.get('recommendation') or result.get('recommendations')
-    if rec:
-        if isinstance(rec, list):
-            rec_text = ' '.join(rec)
-        else:
-            rec_text = rec
-        parts.append(f"\nRecommendation:\n{rec_text}")
-    parts.append(f"\nConfidence:\n{result.get('confidence', 50)}%")
-
-    return "\n\n".join(parts)
+    service = _build_assistant_service()
+    payload = service.answer(
+        dataset,
+        message,
+        user_id=session.get("user_id") or getattr(g, "user_id", None),
+        dataset_id=dataset_id,
+    )
+    return payload.get("answer", "")
 
 
 @app.route("/")
@@ -1532,7 +1510,9 @@ def assistant_endpoint():
     # Record user message (sanitize)
     user_id = session.get("user_id") or getattr(g, "user_id", None)
     safe_message = bleach.clean(message or "")
-    reply = assistant_reply(safe_message, dataset)
+    service = _build_assistant_service()
+    response_payload = service.answer(dataset, safe_message, user_id=user_id, dataset_id=dataset_id)
+    reply = response_payload.get("answer", "")
     try:
         conn = get_db_connection()
         conn.execute(
@@ -1548,7 +1528,15 @@ def assistant_endpoint():
         except Exception:
             pass
 
-    return jsonify({"reply": reply})
+    return jsonify({
+        "reply": reply,
+        "answer": reply,
+        "table": response_payload.get("table", {}),
+        "chart": response_payload.get("chart", {}),
+        "recommendation": response_payload.get("recommendation", ""),
+        "confidence": response_payload.get("confidence", "medium"),
+        "follow_up_questions": response_payload.get("follow_up_questions", []),
+    })
 
 
 @app.route("/export-report/<dataset_id>")

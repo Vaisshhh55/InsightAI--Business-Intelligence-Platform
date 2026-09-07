@@ -264,17 +264,31 @@ function wireEvents() {
     const input = document.getElementById("assistantInput");
     if (!input.value.trim()) return;
     addChatMessage(input.value, "user");
-    await ensureCsrf();
-    const headers = { "Content-Type": "application/json" };
-    if(window._csrf) headers['X-CSRF-Token'] = window._csrf;
-    let response = await fetch("/assistant", { method: "POST", headers, body: JSON.stringify({ dataset_id: currentDatasetId, message: input.value }), credentials: 'same-origin' });
-    if(response.status === 403){
+    let response;
+    try {
       await ensureCsrf();
-      if(window._csrf) headers['X-CSRF-Token'] = window._csrf;
+      const headers = { "Content-Type": "application/json" };
+      if (window._csrf) headers['X-CSRF-Token'] = window._csrf;
       response = await fetch("/assistant", { method: "POST", headers, body: JSON.stringify({ dataset_id: currentDatasetId, message: input.value }), credentials: 'same-origin' });
+      if (response.status === 403) {
+        await ensureCsrf();
+        const retryHeaders = { "Content-Type": "application/json" };
+        if (window._csrf) retryHeaders['X-CSRF-Token'] = window._csrf;
+        response = await fetch("/assistant", { method: "POST", headers: retryHeaders, body: JSON.stringify({ dataset_id: currentDatasetId, message: input.value }), credentials: 'same-origin' });
+      }
+    } catch (error) {
+      addChatMessage("Assistant request failed. Please refresh and try again.", "bot");
+      input.value = "";
+      return;
     }
-    const payload = await response.json();
-    addChatMessage(payload.reply, "bot");
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = { reply: "The assistant returned an invalid response." };
+    }
+    addChatMessage(payload.reply || payload.answer || "The assistant did not return a usable response.", "bot");
     input.value = "";
   });
   document.getElementById("exportExcelBtn").addEventListener("click", () => {
