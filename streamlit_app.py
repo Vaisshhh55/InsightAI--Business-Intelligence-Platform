@@ -244,10 +244,11 @@ def render_dataset_loader():
 
 
 def render_kpis(analysis):
-    first, second, third, fourth, fifth = st.columns(5)
+    first, second, third = st.columns(3)
     first.metric("Rows", f"{analysis['row_count']:,}")
     second.metric("Columns", f"{analysis['column_count']:,}")
     third.metric("Quality", f"{analysis['quality_score']}/100")
+    fourth, fifth = st.columns(2)
     fourth.metric("Growth", f"{analysis['growth_rate']}%")
     fifth.metric(f"Total {analysis['metric_column']}", metric_format(analysis["metric_total"]))
 

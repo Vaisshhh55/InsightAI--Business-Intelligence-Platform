@@ -395,9 +395,17 @@ def prepare_analysis(cleaned_df, dataset_name, quality_score=0):
         growth_rate = round(((last - first) / max(1.0, first)) * 100, 2)
 
     top_categories = []
-    category_columns = [c for c in cleaned_df.columns if c != target_column and c != date_column and cleaned_df[c].dtype == "object"]
+    category_columns = [
+        c for c in cleaned_df.columns
+        if c != target_column
+        and c != date_column
+        and (pd.api.types.is_object_dtype(cleaned_df[c]) or pd.api.types.is_string_dtype(cleaned_df[c]))
+    ]
     if category_columns:
-        category_column = category_columns[0]
+        preferred_terms = ("category", "segment", "region", "ship_mode", "state", "city")
+        preferred = [c for c in category_columns if any(term in str(c).lower() for term in preferred_terms)]
+        usable = [c for c in category_columns if cleaned_df[c].nunique(dropna=True) <= max(20, min(100, len(cleaned_df) // 10))]
+        category_column = (preferred or usable or category_columns)[0]
         grouped = cleaned_df.groupby(category_column, dropna=False)[target_column].sum().sort_values(ascending=False)
         top_categories = [{"name": str(name), "value": round(float(value), 2)} for name, value in grouped.head(5).items()]
 
