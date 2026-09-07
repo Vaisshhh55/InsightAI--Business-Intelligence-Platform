@@ -420,6 +420,7 @@ The primary application is now the Streamlit workspace in `streamlit_app.py`. It
 - Branch: `main`
 - Main file: `streamlit_app.py`
 - Add `GEMINI_API_KEY` in the app Secrets settings to enable Gemini responses; deterministic dataset answers work without it.
+- For accounts that survive Streamlit Cloud restarts, run `supabase_schema.sql` in Supabase SQL Editor and add `SUPABASE_URL` and `SUPABASE_KEY` (server-side service key) to Streamlit Secrets. Without these settings, local SQLite accounts are temporary on Streamlit Cloud.
 
 ### Environment Variables
 - `FLASK_SECRET_KEY`: Flask app secret key

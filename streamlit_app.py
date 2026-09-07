@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+import requests
 import streamlit as st
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -55,10 +56,48 @@ def ensure_state():
 
 
 def user_by_email(email):
+    remote_user = supabase_user_by_email(email)
+    if remote_user is not None:
+        return remote_user
     conn = get_db_connection()
     row = conn.execute("SELECT id, email, role, password FROM users WHERE lower(email) = lower(?)", (email.strip(),)).fetchone()
     conn.close()
     return row
+
+
+def supabase_settings():
+    try:
+        url = st.secrets.get("SUPABASE_URL") or os.getenv("SUPABASE_URL")
+        key = st.secrets.get("SUPABASE_KEY") or os.getenv("SUPABASE_KEY")
+    except Exception:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+    if not url or not key:
+        return None
+    return url.rstrip("/"), key
+
+
+def supabase_headers(key):
+    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+
+
+def supabase_user_by_email(email):
+    settings = supabase_settings()
+    if not settings:
+        return None
+    url, key = settings
+    try:
+        response = requests.get(
+            f"{url}/rest/v1/streamlit_users",
+            params={"email": f"eq.{email.strip().lower()}", "select": "id,email,password,role"},
+            headers=supabase_headers(key),
+            timeout=10,
+        )
+        response.raise_for_status()
+        rows = response.json()
+        return rows[0] if rows else False
+    except Exception as error:
+        raise RuntimeError("Persistent account storage is unavailable. Check SUPABASE_URL, SUPABASE_KEY, and the streamlit_users table.") from error
 
 
 def current_user():
@@ -79,8 +118,25 @@ def audit(user_id, action, target, details=""):
 def register(email, password):
     if not email or "@" not in email or len(password) < 8:
         return False, "Use a valid email and a password with at least 8 characters."
-    if user_by_email(email):
+    existing_user = user_by_email(email)
+    if existing_user:
         return False, "An account with this email already exists."
+    settings = supabase_settings()
+    if settings:
+        url, key = settings
+        try:
+            response = requests.post(
+                f"{url}/rest/v1/streamlit_users",
+                headers={**supabase_headers(key), "Prefer": "return=representation"},
+                json={"email": email.strip().lower(), "password": generate_password_hash(password), "role": "user"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            user_id = response.json()[0]["id"]
+            audit(user_id, "register", email, "Streamlit registration")
+            return True, "Account created. You can now sign in."
+        except Exception as error:
+            return False, f"Could not create the persistent account: {error}"
     conn = get_db_connection()
     cursor = conn.execute(
         "INSERT INTO users (email, password, role, created_at) VALUES (?, ?, ?, ?)",
