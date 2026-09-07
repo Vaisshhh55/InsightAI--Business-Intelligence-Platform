@@ -112,7 +112,12 @@ def parse_dataset(file_bytes, filename):
     if suffix == ".xlsx":
         return pd.read_excel(stream, engine="openpyxl", nrows=20000)
     if suffix == ".xls":
-        return pd.read_excel(stream, engine="xlrd", nrows=20000)
+        try:
+            return pd.read_excel(stream, engine="xlrd", nrows=20000)
+        except ImportError as error:
+            raise ValueError("Legacy .xls files require the xlrd package. Please redeploy so requirements.txt is installed.") from error
+        except Exception as error:
+            raise ValueError(f"This .xls file could not be read: {error}") from error
     raise ValueError("Upload a CSV, XLS, or XLSX file.")
 
 
@@ -223,7 +228,8 @@ def render_dataset_loader():
             st.success("Dataset analyzed successfully.")
             st.rerun()
         except Exception as error:
-            st.error(f"Could not process the dataset: {error}")
+            st.error(f"Could not process {uploaded.name}: {error}")
+            st.info("Try downloading the workbook again or saving it as .xlsx or .csv before uploading.")
     st.divider()
     st.subheader("Demo dataset")
     st.write("Explore the included sample data without uploading a file.")
